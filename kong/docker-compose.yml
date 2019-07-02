@@ -5,6 +5,9 @@ networks:
     external:
       name: kong-net
 
+volumes:
+  kong-data:
+
 services:
   #######################################
   # Postgres: The database used by Kong
@@ -17,7 +20,7 @@ services:
       POSTGRES_USER: kong
       POSTGRES_DB: kong
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - kong-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "kong"]
       interval: 5s

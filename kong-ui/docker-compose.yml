@@ -5,6 +5,9 @@ networks:
     external:
       name: kong-net
 
+volumes:
+  konga-data:
+
 services:
 
   #######################################
@@ -19,7 +22,7 @@ services:
       POSTGRES_USER: konga
       POSTGRES_PASSWORD: abc12345
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - konga-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "konga"]
       interval: 5s
