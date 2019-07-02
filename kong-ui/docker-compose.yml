@@ -1,0 +1,60 @@
+version: "3.1"
+
+networks:
+  default:
+    external:
+      name: kong-net
+
+services:
+
+  #######################################
+  # Postgres: The database used by Konga
+  #######################################
+  konga-database:
+    image: postgres:9.6
+    container_name: konga-database
+    restart: always
+    environment:
+      POSTGRES_DB: konga
+      POSTGRES_USER: konga
+      POSTGRES_PASSWORD: abc12345
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "konga"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  #######################################
+  # Konga database prepare
+  #######################################
+  konga-prepare:
+    image: pantsel/konga:latest
+    container_name: konga-prepare
+    command: "-c prepare -a postgres -u postgresql://konga:abc12345@konga-database:5432/konga"
+    restart: on-failure
+    links:
+      - konga-database
+    depends_on:
+      - konga-database
+
+  #######################################
+  # Konga: Kong GUI
+  #######################################
+  konga:
+    image: pantsel/konga:latest
+    container_name: kong-ui
+    restart: always
+    environment:
+      DB_ADAPTER: postgres
+      DB_HOST: konga-database
+      DB_USER: konga
+      DB_PASSWORD: abc12345
+      TOKEN_SECRET: km1GUr4RkcQD7DewhJPNXrCuZwcKmqjb
+      DB_DATABASE: konga
+      NODE_ENV: production
+    depends_on:
+      - konga-database
+    ports:
+      - 1337:1337
